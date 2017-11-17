@@ -5,18 +5,18 @@ Client Configuration
 --------------------
 You can configure certain behaviours when creating a ``SwaggerClient``.
 
-bravado and bravado-core use the same config dict. The full documentation for
+aiobravado and bravado-core use the same config dict. The full documentation for
 `bravado-core config keys <http://bravado-core.readthedocs.org/en/latest/config.html>`_
 is available too.
 
 .. code-block:: python
 
-    from bravado.client import SwaggerClient, SwaggerFormat
+    from aiobravado.client import SwaggerClient, SwaggerFormat
 
     my_super_duper_format = SwaggerFormat(...)
 
     config = {
-        # === bravado config ===
+        # === aiobravado config ===
 
         # Determines what is returned by the service call.
         'also_return_response': False,

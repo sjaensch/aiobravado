@@ -1,13 +1,13 @@
 bravado Package
 ===============
 
-:mod:`bravado` Package
+:mod:`aiobravado` Package
 ----------------------
 
 :mod:`client` Module
 --------------------
 
-.. automodule:: bravado.client
+.. automodule:: aiobravado.client
     :members:
     :undoc-members:
     :show-inheritance:
@@ -15,7 +15,7 @@ bravado Package
 :mod:`requests_client` Module
 -----------------------------
 
-.. automodule:: bravado.requests_client
+.. automodule:: aiobravado.requests_client
     :members:
     :undoc-members:
     :show-inheritance:
@@ -23,7 +23,7 @@ bravado Package
 :mod:`fido_client` Module
 -------------------------
 
-.. automodule:: bravado.fido_client
+.. automodule:: aiobravado.fido_client
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,7 +31,7 @@ bravado Package
 :mod:`http_future` Module
 -------------------------
 
-.. automodule:: bravado.http_future
+.. automodule:: aiobravado.http_future
     :members:
     :undoc-members:
     :show-inheritance:
@@ -39,7 +39,7 @@ bravado Package
 :mod:`exception` Module
 -----------------------
 
-.. automodule:: bravado.exception
+.. automodule:: aiobravado.exception
     :members:
     :undoc-members:
     :show-inheritance:

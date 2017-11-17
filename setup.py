@@ -6,38 +6,36 @@ import os
 
 from setuptools import setup
 
-import bravado
+import aiobravado
 
 setup(
-    name="bravado",
-    version=bravado.version,
-    license="BSD 3-Clause License",
-    description="Library for accessing Swagger-enabled API's",
+    name='aiobravado',
+    version=aiobravado.version,
+    license='BSD 3-Clause License',
+    description='Async library for accessing Swagger-enabled APIs',
     long_description=open(os.path.join(os.path.dirname(__file__),
-                                       "README.rst")).read(),
-    author="Digium, Inc. and Yelp, Inc.",
-    author_email="opensource+bravado@yelp.com",
-    url="https://github.com/Yelp/bravado",
-    packages=["bravado"],
+                                       'README.rst')).read(),
+    author='Stephan Jaensch, Digium, Inc. and Yelp, Inc.',
+    author_email='sj@sjaensch.org',
+    url='https://github.com/sjaensch/aiobravado',
+    packages=['aiobravado'],
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "License :: OSI Approved :: BSD License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     install_requires=[
-        "bravado-core >= 4.2.2",
-        "python-dateutil",
-        "pyyaml",
-        "requests >= 2",
-        "six",
+        'aiohttp',
+        'bravado-core >= 4.2.2',
+        'python-dateutil',
+        'pyyaml',
     ],
     extras_require={
-        "fido": ["fido >= 4.2.1"],
+        # as recommended by aiohttp, see http://aiohttp.readthedocs.io/en/stable/#library-installation
+        'aiohttp_extras': ['aiodns', 'cchardet'],
     },
 )

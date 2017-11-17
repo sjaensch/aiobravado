@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from bravado.client import ResourceDecorator
-from bravado.client import SwaggerClient
+from aiobravado.client import ResourceDecorator
+from aiobravado.client import SwaggerClient
 
 
 def test_resource_exists(petstore_client):

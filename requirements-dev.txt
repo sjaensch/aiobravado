@@ -1,8 +1,10 @@
 bottle
 ephemeral_port_reserve
-httpretty
 mock
+mocket
 pip>=9.0.1 # workaround to https://github.com/pypa/pip/issues/3903
 pre-commit
 pytest
+pytest-asyncio
 u-msgpack-python
+wheel

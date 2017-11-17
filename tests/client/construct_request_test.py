@@ -6,8 +6,8 @@ from bravado_core.request import unmarshal_request
 from mock import mock
 from mock import patch
 
-from bravado.client import CallableOperation
-from bravado.client import construct_request
+from aiobravado.client import CallableOperation
+from aiobravado.client import construct_request
 from tests.client.conftest import minimal_swagger_spec as build_swagger_spec
 
 
@@ -15,7 +15,7 @@ from tests.client.conftest import minimal_swagger_spec as build_swagger_spec
     ('timeout', 1),
     ('connect_timeout', 2),
 ])
-@patch('bravado.client.marshal_param')
+@patch('aiobravado.client.marshal_param')
 def test_with_timeouts(
     mock_marshal_param, minimal_swagger_spec,
     getPetById_spec, request_dict, timeout_kv,

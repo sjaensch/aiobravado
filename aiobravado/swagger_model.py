@@ -11,8 +11,8 @@ from six import itervalues
 from six.moves import urllib
 from six.moves.urllib import parse as urlparse
 
-from bravado.compat import json
-from bravado.requests_client import RequestsClient
+from aiobravado.aiohttp_client import AiohttpClient
+from aiobravado.compat import json
 
 log = logging.getLogger(__name__)
 
@@ -29,11 +29,15 @@ class FileEventual(object):
     class FileResponse(object):
 
         def __init__(self, data):
-            self.text = data
+            self._text = data
             self.headers = {}
 
-        def json(self):
-            return json.loads(self.text.decode('utf-8'))
+        @property
+        async def text(self):
+            return self._text
+
+        async def json(self):
+            return json.loads(self._text.decode('utf-8'))
 
     def __init__(self, path):
         self.path = path
@@ -49,7 +53,7 @@ class FileEventual(object):
             content = fp.read()
             return self.FileResponse(content)
 
-    def result(self, *args, **kwargs):
+    async def result(self, *args, **kwargs):
         return self.wait(*args, **kwargs)
 
     def cancel(self):
@@ -59,7 +63,7 @@ class FileEventual(object):
 def request(http_client, url, headers):
     """Download and parse JSON from a URL.
 
-    :param http_client: a :class:`bravado.http_client.HttpClient`
+    :param http_client: a :class:`aiobravado.http_client.HttpClient`
     :param url: url for api docs
     :return: an object with a :func`wait` method which returns the api docs
     """
@@ -87,14 +91,14 @@ class Loader(object):
         self.http_client = http_client
         self.request_headers = request_headers or {}
 
-    def load_spec(self, spec_url, base_url=None):
+    async def load_spec(self, spec_url, base_url=None):
         """Load a Swagger Spec from the given URL
 
         :param spec_url: URL to swagger.json
         :param base_url: TODO: need this?
         :returns: json spec in dict form
         """
-        response = request(
+        response = await request(
             self.http_client,
             spec_url,
             self.request_headers,
@@ -102,9 +106,9 @@ class Loader(object):
 
         content_type = response.headers.get('content-type', '').lower()
         if is_yaml(spec_url, content_type):
-            return self.load_yaml(response.text)
+            return self.load_yaml(await response.text)
         else:
-            return response.json()
+            return await response.json()
 
     def load_yaml(self, text):
         """Load a YAML Swagger spec from the given string, transforming
@@ -130,7 +134,7 @@ class Loader(object):
 
 # TODO: Adding the file scheme here just adds complexity to request()
 # Is there a better way to handle this?
-def load_file(spec_file, http_client=None):
+async def load_file(spec_file, http_client=None):
     """Loads a spec file
 
     :param spec_file: Path to swagger.json.
@@ -143,10 +147,10 @@ def load_file(spec_file, http_client=None):
     # When loading from files, everything is relative to the spec file
     dir_path = os.path.dirname(file_path)
     base_url = urlparse.urljoin(u'file:', urllib.request.pathname2url(dir_path))
-    return load_url(url, http_client=http_client, base_url=base_url)
+    return await load_url(url, http_client=http_client, base_url=base_url)
 
 
-def load_url(spec_url, http_client=None, base_url=None):
+async def load_url(spec_url, http_client=None, base_url=None):
     """Loads a Swagger spec.
 
     :param spec_url: URL for swagger.json.
@@ -158,7 +162,7 @@ def load_url(spec_url, http_client=None, base_url=None):
     :raise: IOError, URLError: On error reading api-docs.
     """
     if http_client is None:
-        http_client = RequestsClient()
+        http_client = AiohttpClient()
 
     loader = Loader(http_client=http_client)
-    return loader.load_spec(spec_url, base_url=base_url)
+    return await loader.load_spec(spec_url, base_url=base_url)

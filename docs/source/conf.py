@@ -19,7 +19,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bravado'
+project = u'aiobravado'
 copyright = u'2013, Digium, Inc.; 2014-2015, Yelp, Inc'
 
 exclude_patterns = []

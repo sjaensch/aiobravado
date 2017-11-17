@@ -2,15 +2,14 @@
 """
 Functional tests related to passing models in req/response
 """
-import httpretty
 import pytest
 from jsonschema.exceptions import ValidationError
+from mocket.plugins.httpretty import HTTPretty
 
-from bravado.client import SwaggerClient
-from bravado.compat import json
-from tests.functional.conftest import API_DOCS_URL
+from aiobravado.compat import json
 from tests.functional.conftest import register_get
 from tests.functional.conftest import register_spec
+from tests.functional.conftest import swagger_client
 
 
 @pytest.fixture
@@ -101,12 +100,13 @@ def swagger_dict():
         ('yaml',),
     )
 )
-def test_model_in_response(
-        httprettified, swagger_dict, sample_model, spec_type):
+@pytest.mark.asyncio
+async def test_model_in_response(
+        swagger_dict, sample_model, spec_type, http_client):
     register_spec(swagger_dict, spec_type=spec_type)
     register_get("http://localhost/test_http", body=json.dumps(sample_model))
-    client = SwaggerClient.from_url(API_DOCS_URL)
-    result = client.api_test.testHTTP().result()
+    client = await swagger_client(http_client)
+    result = await client.api_test.testHTTP().result()
     User = client.get_model('User')
     School = client.get_model('School')
     assert isinstance(result, User)
@@ -120,56 +120,62 @@ def test_model_in_response(
         ]) == result
 
 
-def test_model_missing_required_property_in_response_raises_ValidationError(
-        httprettified, swagger_dict, sample_model):
+@pytest.mark.asyncio
+async def test_model_missing_required_property_in_response_raises_ValidationError(
+        swagger_dict, sample_model, http_client):
     register_spec(swagger_dict)
     sample_model.pop("id")
     register_get("http://localhost/test_http", body=json.dumps(sample_model))
+    client = await swagger_client(http_client)
     with pytest.raises(ValidationError) as excinfo:
-        SwaggerClient.from_url(API_DOCS_URL).api_test.testHTTP().result()
+        await client.api_test.testHTTP().result()
     assert "'id' is a required property" in str(excinfo.value)
 
 
-def test_additionalProperty_in_model_in_response(
-        httprettified, swagger_dict, sample_model):
+@pytest.mark.asyncio
+async def test_additionalProperty_in_model_in_response(swagger_dict, sample_model, http_client):
     register_spec(swagger_dict)
     sample_model["extra"] = 42
     register_get("http://localhost/test_http", body=json.dumps(sample_model))
-    resource = SwaggerClient.from_url(API_DOCS_URL).api_test
-    result = resource.testHTTP().result()
+    client = await swagger_client(http_client)
+    result = await client.api_test.testHTTP().result()
     assert result.extra == 42
 
 
-def test_invalid_type_in_response_raises_ValidationError(
-        httprettified, swagger_dict, sample_model):
+@pytest.mark.asyncio
+async def test_invalid_type_in_response_raises_ValidationError(swagger_dict, sample_model, http_client):
     register_spec(swagger_dict)
     register_get("http://localhost/test_http", body='"NOT_COMPLEX_TYPE"')
+    client = await swagger_client(http_client)
     with pytest.raises(ValidationError) as excinfo:
-        SwaggerClient.from_url(API_DOCS_URL).api_test.testHTTP().result()
+        await client.api_test.testHTTP().result()
     assert "'NOT_COMPLEX_TYPE' is not of type" in str(excinfo.value)
 
 
-def test_error_on_wrong_type_inside_complex_type(
-        httprettified, swagger_dict, sample_model):
+@pytest.mark.asyncio
+async def test_error_on_wrong_type_inside_complex_type(swagger_dict, sample_model, http_client):
     register_spec(swagger_dict)
     sample_model["id"] = "Not Integer"
     register_get("http://localhost/test_http", body=json.dumps(sample_model))
+    client = await swagger_client(http_client)
     with pytest.raises(ValidationError) as excinfo:
-        SwaggerClient.from_url(API_DOCS_URL).api_test.testHTTP().result()
+        await client.api_test.testHTTP().result()
     assert "'Not Integer' is not of type" in str(excinfo.value)
 
 
-def test_error_on_missing_type_in_model(
-        httprettified, swagger_dict, sample_model):
+@pytest.mark.asyncio
+async def test_error_on_missing_type_in_model(swagger_dict, sample_model, http_client):
     register_spec(swagger_dict)
     sample_model["schools"][0] = {}  # Omit 'name'
     register_get("http://localhost/test_http", body=json.dumps(sample_model))
+    client = await swagger_client(http_client)
     with pytest.raises(ValidationError) as excinfo:
-        SwaggerClient.from_url(API_DOCS_URL).api_test.testHTTP().result()
+        await client.api_test.testHTTP().result()
     assert "'name' is a required property" in str(excinfo.value)
 
 
-def test_model_in_body_of_request(httprettified, swagger_dict, sample_model):
+@pytest.mark.asyncio
+async def test_model_in_body_of_request(swagger_dict, sample_model, http_client):
     param_spec = {
         "in": "body",
         "name": "body",
@@ -179,12 +185,12 @@ def test_model_in_body_of_request(httprettified, swagger_dict, sample_model):
     }
     swagger_dict["paths"]["/test_http"]['post']["parameters"] = [param_spec]
     register_spec(swagger_dict)
-    httpretty.register_uri(httpretty.POST, "http://localhost/test_http")
-    client = SwaggerClient.from_url(API_DOCS_URL)
+    HTTPretty.register_uri(HTTPretty.POST, "http://localhost/test_http")
+    client = await swagger_client(http_client)
     resource = client.api_test
     User = client.get_model('User')
     School = client.get_model('School')
     user = User(id=42, schools=[School(name='s1')])
-    resource.testHTTPPost(body=user).result()
-    body = json.loads(httpretty.last_request().body.decode('utf-8'))
+    await resource.testHTTPPost(body=user).result()
+    body = json.loads(HTTPretty.last_request.body.decode('utf-8'))
     assert {'schools': [{'name': 's1'}], 'id': 42} == body

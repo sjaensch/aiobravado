@@ -3,11 +3,10 @@ import datetime
 import tempfile
 import unittest
 
-import httpretty
 import pytest
-import requests
+from mocket.plugins import httpretty
 
-from bravado.client import SwaggerClient
+from aiobravado.client import SwaggerClient
 
 
 @pytest.mark.xfail
@@ -101,7 +100,7 @@ class SwaggerClientTest(unittest.TestCase):
     def test_post_and_optional_params(self):
         httpretty.register_uri(
             httpretty.POST, "http://swagger.py/swagger-test/pet",
-            status=requests.codes.ok,
+            status=200,
             body='"Spark is born"')
 
         resp = self.uut.pet.createPet(
@@ -118,7 +117,7 @@ class SwaggerClientTest(unittest.TestCase):
     def test_post_binary_data(self):
         httpretty.register_uri(
             httpretty.POST, 'http://swagger.py/swagger-test/pet/1234/vaccine',
-            status=requests.codes.no_content)
+            status=204)
 
         temporary_file = tempfile.TemporaryFile()
         temporary_file.write('\xff\xd8')
@@ -132,7 +131,7 @@ class SwaggerClientTest(unittest.TestCase):
     def test_delete(self):
         httpretty.register_uri(
             httpretty.DELETE, "http://swagger.py/swagger-test/pet/1234",
-            status=requests.codes.no_content)
+            status=204)
 
         resp = self.uut.pet.deletePet(petId=1234).result()
         self.assertEqual(None, resp)

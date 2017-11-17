@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The :class:`SwaggerClient` provides an interface for making API calls based on
 a swagger spec, and returns responses of python objects which build from the
@@ -41,7 +40,7 @@ To get a client
 
 .. code-block:: python
 
-    client = bravado.client.SwaggerClient.from_url(swagger_spec_url)
+    client = aiobravado.client.SwaggerClient.from_url(swagger_spec_url)
 """
 import logging
 
@@ -53,16 +52,17 @@ from bravado_core.spec import Spec
 from six import iteritems
 from six import itervalues
 
-from bravado.docstring_property import docstring_property
-from bravado.requests_client import RequestsClient
-from bravado.swagger_model import Loader
-from bravado.warning import warn_for_deprecated_op
+from aiobravado.docstring_property import docstring_property
+from aiobravado.swagger_model import Loader
+from aiobravado.warning import warn_for_deprecated_op
+
+from aiobravado.aiohttp_client import AiohttpClient
 
 log = logging.getLogger(__name__)
 
 
 CONFIG_DEFAULTS = {
-    # See the constructor of :class:`bravado.http_future.HttpFuture` for an
+    # See the constructor of :class:`aiobravado.http_future.HttpFuture` for an
     # in depth explanation of what this means.
     'also_return_response': False,
 }
@@ -91,27 +91,27 @@ class SwaggerClient(object):
         self.swagger_spec = swagger_spec
 
     @classmethod
-    def from_url(cls, spec_url, http_client=None, request_headers=None,
-                 config=None):
+    async def from_url(cls, spec_url, http_client=None, request_headers=None,
+                       config=None):
         """Build a :class:`SwaggerClient` from a url to the Swagger
         specification for a RESTful API.
 
         :param spec_url: url pointing at the swagger API specification
         :type spec_url: str
         :param http_client: an HTTP client used to perform requests
-        :type  http_client: :class:`bravado.http_client.HttpClient`
+        :type  http_client: :class:`aiobravado.http_client.HttpClient`
         :param request_headers: Headers to pass with http requests
         :type  request_headers: dict
-        :param config: Config dict for bravado and bravado_core.
+        :param config: Config dict for aiobravado and bravado_core.
             See CONFIG_DEFAULTS in :module:`bravado_core.spec`.
-            See CONFIG_DEFAULTS in :module:`bravado.client`.
+            See CONFIG_DEFAULTS in :module:`aiobravado.client`.
 
         :rtype: :class:`bravado_core.spec.Spec`
         """
         log.debug(u"Loading from %s", spec_url)
-        http_client = http_client or RequestsClient()
+        http_client = http_client or AiohttpClient()
         loader = Loader(http_client, request_headers=request_headers)
-        spec_dict = loader.load_spec(spec_url)
+        spec_dict = await loader.load_spec(spec_url)
 
         # RefResolver may have to download additional json files (remote refs)
         # via http. Wrap http_client's request() so that request headers are
@@ -137,9 +137,9 @@ class SwaggerClient(object):
 
         :rtype: :class:`bravado_core.spec.Spec`
         """
-        http_client = http_client or RequestsClient()
+        http_client = http_client or AiohttpClient()
 
-        # Apply bravado config defaults
+        # Apply aiobravado config defaults
         config = dict(CONFIG_DEFAULTS, **(config or {}))
 
         also_return_response = config.pop('also_return_response', False)
@@ -247,7 +247,7 @@ class CallableOperation(object):
     def __call__(self, **op_kwargs):
         """Invoke the actual HTTP request and return a future.
 
-        :rtype: :class:`bravado.http_future.HTTPFuture`
+        :rtype: :class:`aiobravado.http_future.HTTPFuture`
         """
         log.debug(u'%s(%s)', self.operation.operation_id, op_kwargs)
         warn_for_deprecated_op(self.operation)

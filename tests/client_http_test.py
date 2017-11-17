@@ -5,10 +5,10 @@
 #
 import unittest
 
-import httpretty
 import pytest
+from mocket.plugins import httpretty
 
-from bravado.client import SwaggerClient
+from aiobravado.client import SwaggerClient
 
 
 # noinspection PyDocstring

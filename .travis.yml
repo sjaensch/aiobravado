@@ -2,23 +2,17 @@ language: python
 
 matrix:
   include:
-  - env: TOXENV=py27-default
-  - env: TOXENV=py27-fido
-  - env: TOXENV=py27-fido-requests2dot7
-
-  - env: TOXENV=py35-default
+  - env: TOXENV=py35
     python: "3.5"
-  - env: TOXENV=py35-fido
-    python: "3.5"
-
-  - env: TOXENV=py36-default
+  - env: TOXENV=py36
     python: "3.6"
-  - env: TOXENV=py36-fido
+  - env: TOXENV=pre-commit
     python: "3.6"
-
   - env: TOXENV=cover
+    python: "3.6"
   - env: TOXENV=docs
   - env: TOXENV=flake8
+    python: "3.6"
 
 install:
 - "pip install tox coveralls"

@@ -2,15 +2,19 @@
 import functools
 import json
 
-import httpretty
+from mocket.mocket import Mocketizer
+from mocket.plugins.httpretty import HTTPretty
 import pytest
 import yaml
+
+from aiobravado import aiohttp_client
+from aiobravado.client import SwaggerClient
 
 
 API_DOCS_URL = "http://localhost/api-docs"
 
 # Convenience for httpretty.register_uri(httpretty.GET, **kwargs)
-register_get = functools.partial(httpretty.register_uri, httpretty.GET, content_type='application/json')
+register_get = functools.partial(HTTPretty.register_uri, HTTPretty.GET, content_type='application/json')
 
 
 def register_spec(swagger_dict, response_spec=None, spec_type='json'):
@@ -66,37 +70,22 @@ def swagger_dict():
     }
 
 
+@pytest.fixture(autouse=True)
+def httprettified():
+    with Mocketizer(instance=None):
+        yield
+
+
 @pytest.fixture
-def httprettified(request):
-    """
-    pytest style fixture to activate/deactive httpretty so that you get the
-    benefit of the @httpretty.activate decoratator without having to use it.
+def http_client(event_loop):
+    http_client = aiohttp_client.AiohttpClient(loop=event_loop)
+    yield http_client
+    http_client.client_session.close()
 
-    Basically, this won't work:
 
-        @httpretty.activate
-        def test_foo(some_pytest_fixture):
-            pass
-
-    Use this instead:
-
-        def test_foo(httprettified, some_pytest_fixture):
-            # interactions with httpretty occur as if you'd decorated
-            # this function with @httpretty.activate
-            httpretty.register_uri(...)
-
-    If you're passing multiple fixtures to the test that rely on httpretty
-    being activated, make sure that `httprettified` is before all the other
-    fixtures that depend on it.
-
-    :param request: This is a pytest (confusingly named) param. Don't worry
-        about it.
-    """
-    # TODO: move to test util package
-    httpretty.reset()
-    httpretty.enable()
-
-    def fin():
-        httpretty.disable()
-
-    request.addfinalizer(fin)
+# This function can't be a fixture right now since we need to register the URLs before creating the client
+async def swagger_client(http_client):
+    return await SwaggerClient.from_url(
+        API_DOCS_URL,
+        http_client=http_client,
+    )

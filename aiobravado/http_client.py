@@ -21,7 +21,7 @@ class HttpClient(object):
         :param response_callbacks: List of callables to post-process the
             incoming response. Expects args incoming_response and operation.
         :param also_return_response: Consult the constructor documentation for
-            :class:`bravado.http_future.HttpFuture`.
+            :class:`aiobravado.http_future.HttpFuture`.
 
         :returns: HTTP Future object
         :rtype: :class: `bravado_core.http_future.HttpFuture`

@@ -2,12 +2,16 @@
 import sys
 from functools import wraps
 
-import bravado_core
 import six
+import umsgpack
+from bravado_core.content_type import APP_JSON, APP_MSGPACK
 from bravado_core.exception import MatchingResponseNotFound
+from bravado_core.response import get_response_spec
+from bravado_core.unmarshal import unmarshal_schema_object
+from bravado_core.validate import validate_schema_object
 
-from bravado.exception import BravadoTimeoutError
-from bravado.exception import make_http_exception
+from aiobravado.exception import BravadoTimeoutError
+from aiobravado.exception import make_http_exception
 
 
 class FutureAdapter(object):
@@ -15,7 +19,7 @@ class FutureAdapter(object):
     Mimics a :class:`concurrent.futures.Future` regardless of which client is
     performing the request, whether it is synchronous or actually asynchronous.
 
-    This adapter must be implemented by all bravado clients such as FidoClient
+    This adapter must be implemented by all aiobravado clients such as FidoClient
     or RequestsClient to wrap the object returned by their 'request' method.
 
     """
@@ -23,7 +27,7 @@ class FutureAdapter(object):
     # Make sure to define the timeout errors associated with your http client
     timeout_errors = []
 
-    def result(self, timeout=None):
+    async def result(self, timeout=None):
         """
         Must implement a result method which blocks on result retrieval.
 
@@ -66,7 +70,7 @@ def reraise_errors(func):
     return wrapper
 
 
-class HttpFuture(object):
+class HttpFuture():
     """Wrapper for a :class:`FutureAdapter` that returns an HTTP response.
 
     :param future: The future object to wrap.
@@ -75,7 +79,7 @@ class HttpFuture(object):
         response in a non-http client specific way.
     :type response_adapter: type that is a subclass of
         :class:`bravado_core.response.IncomingResponse`.
-    :param response_callbacks: See bravado.client.REQUEST_OPTIONS_DEFAULTS
+    :param response_callbacks: See aiobravado.client.REQUEST_OPTIONS_DEFAULTS
     :param also_return_response: Determines if the incoming http response is
         included as part of the return value from calling
         `HttpFuture.result()`.
@@ -96,7 +100,7 @@ class HttpFuture(object):
         self.also_return_response = also_return_response
 
     @reraise_errors
-    def result(self, timeout=None):
+    async def result(self, timeout=None):
         """Blocking call to wait for the HTTP response.
 
         :param timeout: Number of seconds to wait for a response. Defaults to
@@ -105,11 +109,11 @@ class HttpFuture(object):
         :return: Depends on the value of also_return_response sent in
             to the constructor.
         """
-        inner_response = self.future.result(timeout=timeout)
+        inner_response = await self.future.result(timeout=timeout)
         incoming_response = self.response_adapter(inner_response)
 
         if self.operation is not None:
-            unmarshal_response(
+            await unmarshal_response(
                 incoming_response,
                 self.operation,
                 self.response_callbacks)
@@ -125,7 +129,7 @@ class HttpFuture(object):
         raise make_http_exception(response=incoming_response)
 
 
-def unmarshal_response(incoming_response, operation, response_callbacks=None):
+async def unmarshal_response(incoming_response, operation, response_callbacks=None):
     """So the http_client is finished with its part of processing the response.
     This hands the response over to bravado_core for validation and
     unmarshalling and then runs any response callbacks. On success, the
@@ -147,10 +151,10 @@ def unmarshal_response(incoming_response, operation, response_callbacks=None):
 
     try:
         raise_on_unexpected(incoming_response)
-        incoming_response.swagger_result = \
-            bravado_core.response.unmarshal_response(
-                incoming_response,
-                operation)
+        incoming_response.swagger_result = await unmarshal_response_inner(
+            incoming_response,
+            operation,
+        )
     except MatchingResponseNotFound as e:
         exception = make_http_exception(
             response=incoming_response,
@@ -166,6 +170,42 @@ def unmarshal_response(incoming_response, operation, response_callbacks=None):
             response_callback(incoming_response, operation)
 
     raise_on_expected(incoming_response)
+
+
+async def unmarshal_response_inner(response, op):
+    """Unmarshal incoming http response into a value based on the
+    response specification.
+
+    :type response: :class:`bravado_core.response.IncomingResponse`
+    :type op: :class:`bravado_core.operation.Operation`
+    :returns: value where type(value) matches response_spec['schema']['type']
+        if it exists, None otherwise.
+    """
+    deref = op.swagger_spec.deref
+    response_spec = get_response_spec(response.status_code, op)
+
+    def has_content(response_spec):
+        return 'schema' in response_spec
+
+    if not has_content(response_spec):
+        return None
+
+    content_type = response.headers.get('content-type', '').lower()
+
+    if content_type.startswith(APP_JSON) or content_type.startswith(APP_MSGPACK):
+        content_spec = deref(response_spec['schema'])
+        if content_type.startswith(APP_JSON):
+            content_value = await response.json()
+        else:
+            content_value = umsgpack.loads(await response.raw_bytes)
+        if op.swagger_spec.config['validate_responses']:
+            validate_schema_object(op.swagger_spec, content_spec, content_value)
+
+        return unmarshal_schema_object(
+            op.swagger_spec, content_spec, content_value)
+
+    # TODO: Non-json response contents
+    return response.text
 
 
 def raise_on_unexpected(http_response):

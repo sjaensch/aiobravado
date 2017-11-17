@@ -4,7 +4,7 @@ Advanced Usage
 Validations
 -----------
 
-``bravado`` validates the schema against the Swagger 2.0 Spec. Validations are also done on the requests and the responses.
+``aiobravado`` validates the schema against the Swagger 2.0 Spec. Validations are also done on the requests and the responses.
 
 Validation example:
 
@@ -28,7 +28,7 @@ will result in an error like so:
 Adding Request Headers
 ----------------------
 
-``bravado`` allows you to pass request headers along with any request.
+``aiobravado`` allows you to pass request headers along with any request.
 
 .. code-block:: python
 
@@ -44,7 +44,7 @@ Adding Request Headers
 Docstrings
 ----------
 
-``bravado`` provides docstrings to operations and models to quickly get the parameter and response types.
+``aiobravado`` provides docstrings to operations and models to quickly get the parameter and response types.
 Due to an implementation limitation, an operation's docstring looks like a class docstring instead of a
 function docstring. However, the most useful information about parameters and return type is present
 in the ``Docstring`` section.
@@ -58,8 +58,8 @@ in the ``Docstring`` section.
     >> petstore.pet.getPetById?
 
     Type:       CallableOperation
-    String Form:<bravado.client.CallableOperation object at 0x241b5d0>
-    File:       /some/dir/bravado/bravado/client.py
+    String Form:<aiobravado.client.CallableOperation object at 0x241b5d0>
+    File:       /some/dir/aiobravado/bravado/client.py
     Definition: c.pet.getPetById(self, **op_kwargs)
     Docstring:
     [GET] Find pet by ID
@@ -78,7 +78,7 @@ in the ``Docstring`` section.
     Invoke the actual HTTP request and return a future that encapsulates
     the HTTP response.
 
-    :rtype: :class:`bravado.http_future.HTTPFuture`
+    :rtype: :class:`aiobravado.http_future.HTTPFuture`
 
 Docstrings for models can be retrieved as expected:
 
@@ -105,9 +105,9 @@ Docstrings for models can be retrieved as expected:
 Default Values
 --------------
 
-``bravado`` uses the default values from the spec if the value is not provided in the request.
+``aiobravado`` uses the default values from the spec if the value is not provided in the request.
 
-In the `Pet Store <http://petstore.swagger.io/>`_ example, operation ``findPetsByStatus`` has a ``default`` of ``available``. That means, ``bravado`` will plug that value in if no value is provided for the parameter.
+In the `Pet Store <http://petstore.swagger.io/>`_ example, operation ``findPetsByStatus`` has a ``default`` of ``available``. That means, ``aiobravado`` will plug that value in if no value is provided for the parameter.
 
 .. code-block:: python
 
@@ -116,7 +116,7 @@ In the `Pet Store <http://petstore.swagger.io/>`_ example, operation ``findPetsB
 Loading swagger.json by file path
 ---------------------------------
 
-``bravado`` also accepts ``swagger.json`` from a file path. Like so:
+``aiobravado`` also accepts ``swagger.json`` from a file path. Like so:
 
 .. code-block:: python
 
@@ -126,9 +126,9 @@ Alternatively, you can also use the ``load_file`` helper method.
 
 .. code-block:: python
 
-    from bravado.swagger_model import load_file
+    from aiobravado.swagger_model import load_file
 
-    client = SwaggerClient.from_spec(load_file('/path/to/swagger.json'))
+    client = SwaggerClient.from_spec(await load_file('/path/to/swagger.json'))
 
 .. _getting_access_to_the_http_response:
 

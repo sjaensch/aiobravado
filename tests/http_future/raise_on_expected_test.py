@@ -3,8 +3,8 @@ import pytest
 from bravado_core.response import IncomingResponse
 from mock import Mock
 
-from bravado.exception import HTTPError
-from bravado.http_future import raise_on_expected
+from aiobravado.exception import HTTPError
+from aiobravado.http_future import raise_on_expected
 
 
 def test_2XX():

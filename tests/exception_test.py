@@ -1,41 +1,46 @@
 # -*- coding: utf-8 -*-
+import mock
 import pytest
-from requests.models import Response
+from aiohttp import ClientResponse
 
-from bravado.exception import HTTPError
-from bravado.exception import HTTPInternalServerError
-from bravado.exception import HTTPServerError
-from bravado.exception import make_http_exception
-from bravado.requests_client import RequestsResponseAdapter
+from aiobravado.exception import HTTPError
+from aiobravado.exception import HTTPInternalServerError
+from aiobravado.exception import HTTPServerError
+from aiobravado.exception import make_http_exception
+from aiobravado.aiohttp_client import AioHTTPResponseAdapter, AsyncioResponse
 
 
 @pytest.fixture
 def response_500():
-    requests_response = Response()
-    requests_response.status_code = 500
-    requests_response.reason = "Server Error"
-    return requests_response
+    mocked_response = mock.Mock(autospec=ClientResponse)
+    mocked_response.status = 500
+    mocked_response.reason = 'Server Error'
+
+    return AsyncioResponse(
+        response=mocked_response,
+        remaining_timeout=1,
+    )
 
 
 def test_response_only(response_500):
-    incoming_response = RequestsResponseAdapter(response_500)
+    incoming_response = AioHTTPResponseAdapter(response_500)
     assert str(HTTPError(incoming_response)) == '500 Server Error'
 
 
 def test_response_and_message(response_500):
-    incoming_response = RequestsResponseAdapter(response_500)
-    actual = str(HTTPError(incoming_response, message="Kaboom"))
+    incoming_response = AioHTTPResponseAdapter(response_500)
+    actual = str(HTTPError(incoming_response, message='Kaboom'))
     assert actual == '500 Server Error: Kaboom'
 
 
 def test_response_and_swagger_result(response_500):
-    incoming_response = RequestsResponseAdapter(response_500)
+    incoming_response = AioHTTPResponseAdapter(response_500)
     actual = str(HTTPError(incoming_response, swagger_result={'msg': 'Kaboom'}))
     assert actual == "500 Server Error: {'msg': 'Kaboom'}"
 
 
 def test_response_and_message_and_swagger_result(response_500):
-    incoming_response = RequestsResponseAdapter(response_500)
+    incoming_response = AioHTTPResponseAdapter(response_500)
     actual = str(HTTPError(
         incoming_response,
         message="Holy moly!",
@@ -44,7 +49,7 @@ def test_response_and_message_and_swagger_result(response_500):
 
 
 def test_make_http_exception(response_500):
-    incoming_response = RequestsResponseAdapter(response_500)
+    incoming_response = AioHTTPResponseAdapter(response_500)
     exc = make_http_exception(
         incoming_response,
         message="Holy moly!",
@@ -57,10 +62,10 @@ def test_make_http_exception(response_500):
 
 
 def test_make_http_exception_unknown():
-    requests_response = Response()
-    requests_response.status_code = 600
-    requests_response.reason = "Womp Error"
+    mocked_response = mock.Mock(autospec=ClientResponse)
+    mocked_response.status = 600
+    mocked_response.reason = 'Womp Error'
     exc = make_http_exception(
-        RequestsResponseAdapter(requests_response),
+        AioHTTPResponseAdapter(mocked_response),
     )
     assert type(exc) == HTTPError

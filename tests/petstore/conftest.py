@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from bravado.client import SwaggerClient
+from aiobravado.client import SwaggerClient
 
 # TODO: remove
 if False:

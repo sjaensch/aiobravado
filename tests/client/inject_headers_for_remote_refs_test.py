@@ -2,7 +2,7 @@
 from bravado_core.operation import Operation
 from mock import Mock
 
-from bravado.client import inject_headers_for_remote_refs
+from aiobravado.client import inject_headers_for_remote_refs
 
 
 def test_headers_inject_when_retrieving_remote_ref():

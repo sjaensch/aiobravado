@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from bravado.client import Spec
-from bravado.client import SwaggerClient
+from aiobravado.client import Spec
+from aiobravado.client import SwaggerClient
 
 
 @pytest.fixture
