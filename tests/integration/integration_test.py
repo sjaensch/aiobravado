@@ -13,18 +13,21 @@ from aiobravado.exception import HTTPNotFound
 
 
 @pytest.fixture
-async def swagger_client(integration_server, event_loop):
+def swagger_client(integration_server, event_loop):
     # Run all integration tests twice, once with our AsyncioClient and once again with the RequestsClient
     # to make sure they both behave the same.
     # Once this integration suite has become stable (i.e. we're happy with the approach and the test coverage)
     # it could move to bravado and test all major HTTP clients (requests, fido, asyncio).
     spec_url = '{}/swagger.yaml'.format(integration_server)
     http_client = aiohttp_client.AiohttpClient(loop=event_loop)
-    yield await SwaggerClient.from_url(
-        spec_url,
-        http_client=http_client,
-        config={'also_return_response': True},
+    client = event_loop.run_until_complete(
+        SwaggerClient.from_url(
+            spec_url,
+            http_client=http_client,
+            config={'also_return_response': True},
+        )
     )
+    yield client
     http_client.client_session.close()
 
 
