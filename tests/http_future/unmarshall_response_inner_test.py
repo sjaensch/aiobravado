@@ -83,7 +83,7 @@ def test_text_content(mock_get_response_spec, empty_swagger_spec, response_spec,
         spec=IncomingResponse,
         status_code=200,
         headers={'content-type': 'text/plain'},
-        text='Monday',
+        text=coroutine(lambda: 'Monday')(),
     )
 
     mock_get_response_spec.return_value = response_spec
