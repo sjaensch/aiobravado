@@ -1,10 +1,10 @@
 Changelog
 =========
 
-0.9.1 (2018-XX-XX)
+0.9.1 (2018-01-11)
 ------------------
 - bravado version: 9.2.2
-- Fix unmarshalling of non-JSON/msgpack responses.
+- Fix unmarshalling of non-JSON/msgpack responses - PR #1.
 
 0.9.0 (2017-11-17)
 ------------------
