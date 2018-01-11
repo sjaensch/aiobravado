@@ -30,7 +30,8 @@ setup(
     ],
     install_requires=[
         'aiohttp',
-        'bravado-core >= 4.2.2',
+        'bravado-core >= 4.11.0',
+        'msgpack-python',
         'python-dateutil',
         'pyyaml',
     ],

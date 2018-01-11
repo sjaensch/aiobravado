@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The :class:`SwaggerClient` provides an interface for making API calls based on
 a swagger spec, and returns responses of python objects which build from the
@@ -52,32 +53,14 @@ from bravado_core.spec import Spec
 from six import iteritems
 from six import itervalues
 
+from aiobravado.aiohttp_client import AiohttpClient
+from aiobravado.config_defaults import CONFIG_DEFAULTS
+from aiobravado.config_defaults import REQUEST_OPTIONS_DEFAULTS
 from aiobravado.docstring_property import docstring_property
 from aiobravado.swagger_model import Loader
 from aiobravado.warning import warn_for_deprecated_op
 
-from aiobravado.aiohttp_client import AiohttpClient
-
 log = logging.getLogger(__name__)
-
-
-CONFIG_DEFAULTS = {
-    # See the constructor of :class:`aiobravado.http_future.HttpFuture` for an
-    # in depth explanation of what this means.
-    'also_return_response': False,
-}
-
-REQUEST_OPTIONS_DEFAULTS = {
-    # List of callbacks that are executed after the incoming response has been
-    # validated and the swagger_result has been unmarshalled.
-    #
-    # The callback should expect two arguments:
-    #   param : incoming_response
-    #   type  : subclass of class:`bravado_core.response.IncomingResponse`
-    #   param : operation
-    #   type  : class:`bravado_core.operation.Operation`
-    'response_callbacks': [],
-}
 
 
 class SwaggerClient(object):
@@ -91,8 +74,7 @@ class SwaggerClient(object):
         self.swagger_spec = swagger_spec
 
     @classmethod
-    async def from_url(cls, spec_url, http_client=None, request_headers=None,
-                       config=None):
+    async def from_url(cls, spec_url, http_client=None, request_headers=None, config=None):
         """Build a :class:`SwaggerClient` from a url to the Swagger
         specification for a RESTful API.
 
@@ -293,6 +275,9 @@ def construct_request(operation, request_options, **op_kwargs):
         'params': {},  # filled in downstream
         'headers': request_options.get('headers', {}),
     }
+    # Adds Accept header to request for msgpack response if specified
+    if request_options.get('use_msgpack', False):
+        request['headers']['Accept'] = 'application/msgpack'
 
     # Copy over optional request options
     for request_option in ('connect_timeout', 'timeout'):

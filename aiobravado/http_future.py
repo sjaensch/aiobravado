@@ -3,13 +3,15 @@ import sys
 from functools import wraps
 
 import six
-import umsgpack
-from bravado_core.content_type import APP_JSON, APP_MSGPACK
+from bravado_core.content_type import APP_JSON
+from bravado_core.content_type import APP_MSGPACK
 from bravado_core.exception import MatchingResponseNotFound
 from bravado_core.response import get_response_spec
 from bravado_core.unmarshal import unmarshal_schema_object
 from bravado_core.validate import validate_schema_object
+from msgpack import unpackb
 
+from aiobravado.config_defaults import REQUEST_OPTIONS_DEFAULTS
 from aiobravado.exception import BravadoTimeoutError
 from aiobravado.exception import make_http_exception
 
@@ -96,7 +98,7 @@ class HttpFuture():
         self.future = future
         self.response_adapter = response_adapter
         self.operation = operation
-        self.response_callbacks = response_callbacks or []
+        self.response_callbacks = response_callbacks or REQUEST_OPTIONS_DEFAULTS['response_callbacks']
         self.also_return_response = also_return_response
 
     @reraise_errors
@@ -134,12 +136,10 @@ async def unmarshal_response(incoming_response, operation, response_callbacks=No
     This hands the response over to bravado_core for validation and
     unmarshalling and then runs any response callbacks. On success, the
     swagger_result is available as ``incoming_response.swagger_result``.
-
     :type incoming_response: :class:`bravado_core.response.IncomingResponse`
     :type operation: :class:`bravado_core.operation.Operation`
     :type response_callbacks: list of callable. See
         bravado_core.client.REQUEST_OPTIONS_DEFAULTS.
-
     :raises: HTTPError
         - On 5XX status code, the HTTPError has minimal information.
         - On non-2XX status code with no matching response, the HTTPError
@@ -152,8 +152,8 @@ async def unmarshal_response(incoming_response, operation, response_callbacks=No
     try:
         raise_on_unexpected(incoming_response)
         incoming_response.swagger_result = await unmarshal_response_inner(
-            incoming_response,
-            operation,
+            response=incoming_response,
+            op=operation,
         )
     except MatchingResponseNotFound as e:
         exception = make_http_exception(
@@ -173,21 +173,18 @@ async def unmarshal_response(incoming_response, operation, response_callbacks=No
 
 
 async def unmarshal_response_inner(response, op):
-    """Unmarshal incoming http response into a value based on the
+    """
+    Unmarshal incoming http response into a value based on the
     response specification.
-
     :type response: :class:`bravado_core.response.IncomingResponse`
     :type op: :class:`bravado_core.operation.Operation`
     :returns: value where type(value) matches response_spec['schema']['type']
         if it exists, None otherwise.
     """
     deref = op.swagger_spec.deref
-    response_spec = get_response_spec(response.status_code, op)
+    response_spec = get_response_spec(status_code=response.status_code, op=op)
 
-    def has_content(response_spec):
-        return 'schema' in response_spec
-
-    if not has_content(response_spec):
+    if 'schema' not in response_spec:
         return None
 
     content_type = response.headers.get('content-type', '').lower()
@@ -197,12 +194,16 @@ async def unmarshal_response_inner(response, op):
         if content_type.startswith(APP_JSON):
             content_value = await response.json()
         else:
-            content_value = umsgpack.loads(await response.raw_bytes)
-        if op.swagger_spec.config['validate_responses']:
+            content_value = unpackb(await response.raw_bytes, encoding='utf-8')
+
+        if op.swagger_spec.config.get('validate_responses', False):
             validate_schema_object(op.swagger_spec, content_spec, content_value)
 
         return unmarshal_schema_object(
-            op.swagger_spec, content_spec, content_value)
+            swagger_spec=op.swagger_spec,
+            schema_object_spec=content_spec,
+            value=content_value,
+        )
 
     # TODO: Non-json response contents
     return response.text
