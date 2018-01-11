@@ -206,7 +206,7 @@ async def unmarshal_response_inner(response, op):
         )
 
     # TODO: Non-json response contents
-    return response.text
+    return await response.text
 
 
 def raise_on_unexpected(http_response):
