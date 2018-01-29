@@ -11,7 +11,7 @@ Validation example:
 .. code-block:: python
 
     pet = Pet(id="I should be integer :(", name="tommy")
-    client.pet.addPet(body=pet).result()
+    await client.pet.addPet(body=pet).result()
 
 will result in an error like so:
 
@@ -35,7 +35,7 @@ Adding Request Headers
     Pet = client.get_model('Pet')
     Category = client.get_model('Category')
     pet = Pet(id=42, name="tommy", category=Category(id=24))
-    swagger_client.pet.addPet(
+    await swagger_client.pet.addPet(
         body=pet,
         _request_options={"headers": {"foo": "bar"}},
     ).result()
@@ -120,7 +120,7 @@ Loading swagger.json by file path
 
 .. code-block:: python
 
-    client = SwaggerClient.from_url('file:///some/path/swagger.json')
+    client = await SwaggerClient.from_url('file:///some/path/swagger.json')
 
 Alternatively, you can also use the ``load_file`` helper method.
 
@@ -128,7 +128,7 @@ Alternatively, you can also use the ``load_file`` helper method.
 
     from aiobravado.swagger_model import load_file
 
-    client = SwaggerClient.from_spec(await load_file('/path/to/swagger.json'))
+    client = await SwaggerClient.from_spec(await load_file('/path/to/swagger.json'))
 
 .. _getting_access_to_the_http_response:
 
@@ -139,7 +139,7 @@ The default behavior for a service call is to return the swagger result like so:
 
 .. code-block:: python
 
-    pet = petstore.pet.getPetById(petId=42).result()
+    pet = await petstore.pet.getPetById(petId=42).result()
     print pet.name
 
 However, there are times when it is necessary to have access to the actual
@@ -149,10 +149,9 @@ is easily done via configuration to return a
 
 .. code-block:: python
 
-    petstore = Swagger.from_url(..., config={'also_return_response': True})
-    pet, http_response = petstore.pet.getPetById(petId=42).result()
+    petstore = await Swagger.from_url(..., config={'also_return_response': True})
+    pet, http_response = await petstore.pet.getPetById(petId=42).result()
     assert isinstance(http_response, bravado_core.response.IncomingResponse)
-    print http_response.headers
-    print http_response.status_code
-    print pet.name
-
+    print(http_response.headers)
+    print(http_response.status_code)
+    print(pet.name)

@@ -5,13 +5,14 @@ import os
 import os.path
 
 import yaml
+from bravado_asyncio.definitions import RunMode
+from bravado_asyncio.http_client import AsyncioClient
 from bravado_core.spec import is_yaml
 from six import iteritems
 from six import itervalues
 from six.moves import urllib
 from six.moves.urllib import parse as urlparse
 
-from aiobravado.aiohttp_client import AiohttpClient
 from aiobravado.compat import json
 
 log = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ async def load_url(spec_url, http_client=None, base_url=None):
     :raise: IOError, URLError: On error reading api-docs.
     """
     if http_client is None:
-        http_client = AiohttpClient()
+        http_client = AsyncioClient(run_mode=RunMode.FULL_ASYNCIO)
 
     loader = Loader(http_client=http_client)
     return await loader.load_spec(spec_url, base_url=base_url)

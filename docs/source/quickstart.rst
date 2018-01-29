@@ -21,8 +21,8 @@ Here is a simple example to try from a REPL (like IPython):
 
     from aiobravado.client import SwaggerClient
 
-    client = SwaggerClient.from_url("http://petstore.swagger.io/v2/swagger.json")
-    pet = client.pet.getPetById(petId=42).result()
+    client = await SwaggerClient.from_url("http://petstore.swagger.io/v2/swagger.json")
+    pet = await client.pet.getPetById(petId=42).result()
 
 If you were lucky, and pet Id with 42 was present, you will get back a result.
 It will be a dynamically created instance of ``aiobravado.model.Pet`` with attributes ``category``, etc. You can even try ``pet.category.id`` or ``pet.tags[0]``.
@@ -44,35 +44,8 @@ Here we will demonstrate how ``aiobravado`` hides all the ``JSON`` handling from
         Pet = client.get_model('Pet')
         Category = client.get_model('Category')
         pet = Pet(id=42, name="tommy", category=Category(id=24))
-        client.pet.addPet(body=pet).result()
+        await client.pet.addPet(body=pet).result()
 
-
-Time to get Twisted! (Asynchronous client)
-------------------------------------------
-
-``aiobravado`` provides an out of the box asynchronous http client with an optional timeout parameter.
-
-:ref:`hello-pet` above can be rewritten to use the asynchronous `Fido <https://github.com/Yelp/fido>`_ client like so:
-
-.. code-block:: python
-
-        from aiobravado.client import SwaggerClient
-        from aiobravado.fido_client import FidoClient
-
-        client = SwaggerClient.from_url(
-            'http://petstore.swagger.io/v2/swagger.json',
-            FidoClient()
-        )
-
-        result = client.pet.getPetById(petId=42).result(timeout=4)
-
-.. note::
-
-        ``timeout`` parameter here is the timeout (in seconds) the call will block waiting for the complete response. The default timeout is to wait indefinitely.
-
-.. note::
-
-        To use Fido client you should install aiobravado with fido extra via ``pip install aiobravado[fido]``.
 
 This is too fancy for me! I want a simple dict response!
 --------------------------------------------------------
@@ -84,12 +57,12 @@ This is too fancy for me! I want a simple dict response!
         from aiobravado.client import SwaggerClient
         from aiobravado.fido_client import FidoClient
 
-        client = SwaggerClient.from_url(
+        client = await SwaggerClient.from_url(
             'http://petstore.swagger.io/v2/swagger.json',
             config={'use_models': False}
         )
 
-        result = client.pet.getPetById(petId=42).result(timeout=4)
+        result = await client.pet.getPetById(petId=42).result(timeout=4)
 
 ``result`` will look something like:
 
