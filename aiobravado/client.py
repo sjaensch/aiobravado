@@ -45,6 +45,8 @@ To get a client
 """
 import logging
 
+from bravado_asyncio.definitions import RunMode
+from bravado_asyncio.http_client import AsyncioClient
 from bravado_core.docstring import create_operation_docstring
 from bravado_core.exception import SwaggerMappingError
 from bravado_core.formatter import SwaggerFormat  # noqa
@@ -53,7 +55,6 @@ from bravado_core.spec import Spec
 from six import iteritems
 from six import itervalues
 
-from aiobravado.aiohttp_client import AiohttpClient
 from aiobravado.config_defaults import CONFIG_DEFAULTS
 from aiobravado.config_defaults import REQUEST_OPTIONS_DEFAULTS
 from aiobravado.docstring_property import docstring_property
@@ -91,7 +92,7 @@ class SwaggerClient(object):
         :rtype: :class:`bravado_core.spec.Spec`
         """
         log.debug(u"Loading from %s", spec_url)
-        http_client = http_client or AiohttpClient()
+        http_client = http_client or AsyncioClient(run_mode=RunMode.FULL_ASYNCIO)
         loader = Loader(http_client, request_headers=request_headers)
         spec_dict = await loader.load_spec(spec_url)
 
@@ -119,7 +120,7 @@ class SwaggerClient(object):
 
         :rtype: :class:`bravado_core.spec.Spec`
         """
-        http_client = http_client or AiohttpClient()
+        http_client = http_client or AsyncioClient(run_mode=RunMode.FULL_ASYNCIO)
 
         # Apply aiobravado config defaults
         config = dict(CONFIG_DEFAULTS, **(config or {}))

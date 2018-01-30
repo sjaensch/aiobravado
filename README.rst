@@ -27,7 +27,7 @@ services. Here's the breakdown of bravado packages and their use case:
 
 - `bravado <https://github.com/Yelp/bravado>`__ - Library to dynamically interact with OpenAPI/Swagger-enabled services. Supports Python 2.7+.
 - `fido <https://github.com/Yelp/fido>`__ - HTTP client to enable asynchronous network requests for bravado. Supports Python 2.7+. Depends on twisted. Spins up a separate thread to handle network requests.
-- `bravado-asyncio <https://github.com/sjaensch/bravado-asyncio>`__ - asyncio-powered asynchronous HTTP client for bravad. Requires Python 3.5+. Spins up a separate thread to handle network requests.
+- `bravado-asyncio <https://github.com/sjaensch/bravado-asyncio>`__ - asyncio-powered asynchronous HTTP client for bravado. Requires Python 3.5+. It is the default HTTP client for aiobravado, but can be used with bravado as well.
 - aiobravado - asyncio-enabled library to dynamically interact with OpenAPI/Swagger-enabled services. Supports basically all of the features of bravado. Requires Python 3.5+. No additional threads are created.
 
 Example Usage

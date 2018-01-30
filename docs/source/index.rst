@@ -1,19 +1,19 @@
-bravado documentation
+aiobravado documentation
 ========================
 
-Bravado is a python client library for Swagger 2.0 services.
+Aiobravado is a python client library for Swagger 2.0 services, using an asynchronous programming model.
 
 More information on Swagger can be found `on the Swagger website
 <http://swagger.io/>`_
 
 It aims to be a complete replacement to `swagger codegen <https://github.com/wordnik/swagger-codegen>`__.
 
+It is a fork of the bravado library, and is maintained by the same people that maintain bravado.
+
 Features include:
 
 * Dynamically generated client - no code generation needed!
 
-* `Synchronous <http://docs.python-requests.org/en/latest/>`_ and `Asynchronous <https://github.com/Yelp/fido>`_ http clients out of the box.
- 
 * Strict validations to verify that your Swagger Schema is  `v2.0 <https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md/>`_ compatible.
 
 * HTTP request and response validation against your Swagger Schema.

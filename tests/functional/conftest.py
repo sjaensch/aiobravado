@@ -2,12 +2,13 @@
 import functools
 import json
 
-from mocket.mocket import Mocketizer
-from mocket.plugins.httpretty import HTTPretty
 import pytest
 import yaml
+from bravado_asyncio.http_client import AsyncioClient
+from bravado_asyncio.http_client import RunMode
+from mocket.mocket import Mocketizer
+from mocket.plugins.httpretty import HTTPretty
 
-from aiobravado import aiohttp_client
 from aiobravado.client import SwaggerClient
 
 
@@ -78,7 +79,7 @@ def httprettified():
 
 @pytest.fixture
 def http_client(event_loop):
-    http_client = aiohttp_client.AiohttpClient(loop=event_loop)
+    http_client = AsyncioClient(loop=event_loop, run_mode=RunMode.FULL_ASYNCIO)
     yield http_client
     http_client.client_session.close()
 
