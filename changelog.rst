@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.9.2 (2018-02-08)
+------------------
+- Don't ship our own HTTP client, use bravado-asyncio - PR #2.
+
 0.9.1 (2018-01-11)
 ------------------
 - bravado version: 9.2.2
