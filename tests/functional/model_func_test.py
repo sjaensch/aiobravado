@@ -174,6 +174,7 @@ async def test_error_on_missing_type_in_model(swagger_dict, sample_model, http_c
     assert "'name' is a required property" in str(excinfo.value)
 
 
+@pytest.mark.xfail(reason='Fails with aiohttp 3 due to https://github.com/mindflayer/python-mocket/issues/66')
 @pytest.mark.asyncio
 async def test_model_in_body_of_request(swagger_dict, sample_model, http_client):
     param_spec = {
