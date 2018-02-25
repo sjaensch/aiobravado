@@ -12,7 +12,6 @@ from tests.functional.conftest import register_spec
 from tests.functional.conftest import swagger_client
 
 
-@pytest.mark.xfail(reason='Fails with aiohttp 3 due to https://github.com/mindflayer/python-mocket/issues/66')
 @pytest.mark.asyncio
 async def test_form_params_in_request(swagger_dict, http_client):
     param1_spec = {
