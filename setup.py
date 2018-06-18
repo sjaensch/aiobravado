@@ -29,7 +29,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     install_requires=[
-        'bravado-asyncio >= 0.4.0',
+        'bravado-asyncio >= 0.4.0, < 1.1.0',
         'bravado-core >= 4.11.0',
         'msgpack-python',
         'python-dateutil',
