@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import asyncio
 import io
 import os.path
@@ -157,6 +158,7 @@ async def get_swagger_client(spec_url, http_client):
     )
 
 
+@pytest.mark.xfail(reason='Execution time is not always below 2 seconds')
 @pytest.mark.asyncio
 async def test_asyncio_client(integration_server, event_loop):
     # There are three things being executed asynchronously:
