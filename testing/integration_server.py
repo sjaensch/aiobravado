@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import argparse
 import asyncio
 import os.path
@@ -20,7 +21,7 @@ async def login(request):
     if not (
         request.query.get('username') == 'asyncio'
         and request.query.get('password') == 'password'
-        and request.query.get('invalidate_sessions') == 'True'
+        and request.query.get('invalidate_sessions') in ('True', 'true')
     ):
         return web.HTTPBadRequest()
 
